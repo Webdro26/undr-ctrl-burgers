@@ -5,7 +5,8 @@
   "type": "module",
  "scripts": {
   "dev": "vite",
-  "build": "npx vite build",
+  "build": "node ./node_modules/v",
+
   "preview": "vite preview"
 },
   "dependencies": {
