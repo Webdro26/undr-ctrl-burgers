@@ -89,16 +89,18 @@ export default function Menu() {
     
         </motion.div>
 
-        <motion.div className="menu-tabs" initial={{ opacity: 0, y: 18 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: .18, duration: .55 }}>
-          {categories.map((cat) => (
-            <button key={cat} onClick={() => setActive(cat)} className={active === cat ? 'active' : ''}>
-              {cat}
-            </button>
-          ))}
-        </motion.div>
+       <div className="menu-tabs-wrap">
+  <motion.div className="menu-tabs" initial={{ opacity: 0, y: 18 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ delay: .18, duration: .55 }}>
+    {categories.map((cat) => (
+      <button key={cat} onClick={() => setActive(cat)} className={active === cat ? 'active' : ''}>
+        {cat}
+      </button>
+    ))}
+  </motion.div>
+</div>
 
         <AnimatePresence mode="wait">
-          <motion.div key={active} className="menu-grid" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: .35 }}>
+          <motion.div key={active} className={`menu-grid ${active === 'Shakes' ? 'shake-focus' : ''}`} initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: .35 }}>
             {items.map((item, index) => <MenuCard key={item.name} item={item} index={index} />)}
           </motion.div>
         </AnimatePresence>

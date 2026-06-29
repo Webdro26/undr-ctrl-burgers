@@ -183,7 +183,7 @@ export function Contact() {
         <p>GET IN TOUCH</p>
 
         <h2 className="font-display">
-          READY TO GET <span className="chrome-text">UNDER CTRL?</span>
+          READY TO GET <span className="chrome-text">UNDR CTRL?</span>
         </h2>
 
         <h3>

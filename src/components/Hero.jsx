@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { FiArrowRight, FiMapPin } from 'react-icons/fi'
 
-const TOTAL_FRAMES = 300
 const START_FRAME = 1
 const END_FRAME = 115
+const TOTAL_FRAMES = 300
 
 const FRAME_PATH = (n) =>
   `/frames/burger/frame_${String(n).padStart(4, '0')}.jpg`
@@ -23,11 +23,9 @@ export default function Hero() {
     offset: ['start start', 'end start'],
   })
 
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.38, 0.78], [1, 1, 0])
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.45, 0.78], [1, 1, 0])
   const titleY = useTransform(scrollYProgress, [0, 0.78], [0, -45])
-
-  const stageOpacity = useTransform(scrollYProgress, [0.1, 0.28, 0.9], [0, 1, 1])
-  const stageY = useTransform(scrollYProgress, [0.1, 0.5], [20, 0])
+  const stageOpacity = useTransform(scrollYProgress, [0.12, 0.32, 0.9], [0, 1, 1])
 
   const scrollToMenu = () =>
     document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })
@@ -40,8 +38,8 @@ export default function Hero() {
     const img = framesRef.current[index]
     if (!canvas || !img) return
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const rect = canvas.getBoundingClientRect()
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     canvas.width = Math.floor(rect.width * dpr)
     canvas.height = Math.floor(rect.height * dpr)
@@ -50,20 +48,19 @@ export default function Hero() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, rect.width, rect.height)
 
+    const isMobile = window.innerWidth <= 768
     const iw = img.naturalWidth
     const ih = img.naturalHeight
 
-    const isMobile = window.innerWidth < 768
-
     const baseScale = Math.max(rect.width / iw, rect.height / ih)
-    const safeScale = isMobile ? 1.05 : 1.06
+    
+    const scale = baseScale * (isMobile ? 0.82 : 1.07)
 
-    const scale = baseScale * safeScale
     const sw = iw * scale
     const sh = ih * scale
 
     const dx = (rect.width - sw) / 2
-    const dy = (rect.height - sh) / 2 - (isMobile ? 0 : 28)
+    const dy = (rect.height - sh) / 2 - (isMobile ? 72 : 26)
 
     ctx.drawImage(img, dx, dy, sw, sh)
     setCanvasReady(true)
@@ -84,34 +81,19 @@ export default function Hero() {
         img.src = FRAME_PATH(index)
       })
 
-    // Load first frame immediately
     loadFrame(START_FRAME).then(() => {
-  if (cancelled) return
+      if (cancelled) return
+      framesRef.current = images
+      drawFrame(START_FRAME)
+      requestAnimationFrame(() => drawFrame(START_FRAME))
+    })
 
-  framesRef.current = images
-  currentFrameRef.current = START_FRAME
+    const priority = Array.from({ length: END_FRAME + 1 }, (_, i) => i)
 
-  setTimeout(() => {
-    drawFrame(START_FRAME)
-  }, 100)
-
-  setTimeout(() => {
-    drawFrame(START_FRAME)
-  }, 400)
-})
-
-    // Then load important animation frames
-    const priorityFrames = Array.from({ length: 130 }, (_, i) => i)
-
-    Promise.all(priorityFrames.map(loadFrame)).then(() => {
+    Promise.all(priority.map(loadFrame)).then(() => {
       if (cancelled) return
       framesRef.current = images
       drawFrame(currentFrameRef.current)
-
-      // Load remaining frames quietly
-      Array.from({ length: TOTAL_FRAMES }, (_, i) => i)
-        .filter((i) => !priorityFrames.includes(i))
-        .forEach(loadFrame)
     })
 
     return () => {
@@ -131,10 +113,7 @@ export default function Hero() {
 
       currentFrameRef.current = frameIndex
       cancelAnimationFrame(rafRef.current)
-
-      rafRef.current = requestAnimationFrame(() => {
-        drawFrame(frameIndex)
-      })
+      rafRef.current = requestAnimationFrame(() => drawFrame(frameIndex))
     })
 
     return () => unsubscribe()
@@ -144,6 +123,9 @@ export default function Hero() {
     const resize = () => drawFrame(currentFrameRef.current)
     window.addEventListener('resize', resize)
     window.addEventListener('orientationchange', resize)
+
+    setTimeout(() => drawFrame(START_FRAME), 300)
+
     return () => {
       window.removeEventListener('resize', resize)
       window.removeEventListener('orientationchange', resize)
@@ -156,10 +138,10 @@ export default function Hero() {
         <div className="hero-bg" />
 
         <img
-  src={FRAME_PATH(START_FRAME)}
-  alt=""
-  className="hero-fallback-img"
-/>
+          src={FRAME_PATH(START_FRAME)}
+          alt=""
+          className={`hero-fallback-img ${canvasReady ? 'is-ready' : ''}`}
+        />
 
         <canvas ref={canvasRef} className="hero-canvas" />
 
@@ -167,41 +149,17 @@ export default function Hero() {
           className="hero-copy premium-hero-copy"
           style={{ opacity: titleOpacity, y: titleY }}
         >
-          <motion.p
-            className="hero-kicker"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            Chennai born / crafted bold
-          </motion.p>
+          <p className="hero-kicker">Chennai born / crafted bold</p>
 
-          <motion.h1
-            className="font-display hero-title"
-            initial={{ opacity: 0, y: 35, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.85, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <h1 className="font-display hero-title">
             UNDR CTRL
             <br />
             <span>BURGERS DONE DIFFERENTLY.</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            className="hero-sub"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.28 }}
-          >
-            Fresh. Bold. Made in Chennai.
-          </motion.p>
+          <p className="hero-sub">Fresh. Bold. Made in Chennai.</p>
 
-          <motion.div
-            className="hero-actions"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.42 }}
-          >
+          <div className="hero-actions">
             <button onClick={scrollToMenu} className="btn btn-light">
               View Menu <FiArrowRight />
             </button>
@@ -209,17 +167,14 @@ export default function Hero() {
             <button onClick={scrollToLocation} className="btn btn-outline">
               Visit Store <FiMapPin />
             </button>
-          </motion.div>
+          </div>
         </motion.div>
 
-        <motion.div
-          className="hero-stage-copy"
-          style={{ opacity: stageOpacity, y: stageY }}
-        >
+        <motion.div className="hero-stage-copy" style={{ opacity: stageOpacity }}>
           <h2 className="font-display chrome-text">
             EVERY LAYER
             <br />
-            UNDER CTRL
+            UNDR CTRL
           </h2>
         </motion.div>
 
